@@ -1,77 +1,125 @@
 const { error } = require("console");
 const { createRazorpayInstance } = require("../config/razorpay.config");
 const crypto = require("crypto");
+const axios = require("axios");
+const { v4: uuidv4 } = require("uuid");
 require("dotenv").config();
 
-const razorpayInstance = createRazorpayInstance();
+const MERCHANT_KEY = "53201aea-9942-482f-952a-7bc6c6102453";
+const MERCHANT_ID = "MERCHANTUAT";
+
+// const MERCHANT_KEY = "96434309-7796-489d-8924-ab56988a6076";
+// const MERCHANT_ID = "PGTESTPAYUAT86";
+
+const MERCHANT_BASE_URL =
+	"https://api-preprod.phonepe.com/apis/pg-sandbox/pg/v1/pay";
+const MERCHANT_BASE_URL_PROD = "https://api.phonepe.com/apis/hermes/pg/v1/pay";
+
+const MERCHANT_STATUS_URL =
+	"https://api-preprod.phonepe.com/apis/pg-sandbox/pg/v1/status";
+
+const MERCHANT_STATUS_URL_PROD =
+	"https://api.phonepe.com/apis/hermes/pg/v1/status";
+
+// const prod_URL = "https://api.phonepe.com/apis/hermes/pg/v1/pay"
+// const prod_URL = "https://api.phonepe.com/apis/hermes/pg/v1/status"
+
+const redirectUrl = "http://localhost:4000/api/status";
+
+const successUrl = "http://localhost:4000/payment-success";
+const failureUrl = "http://localhost:4000/payment-failure";
 
 exports.createOrder = async (req, res) => {
-	console.log(req.body);
-	const { courseId, amount } = req.body;
-	console.log("11", courseId, amount);
+	const { name, mobile, amount, transactionId, MUID } = req.body;
+	console.log("TT", req.body);
 
-	if (!courseId || !amount) {
-		return res.status(400).json({
-			success: false,
-			message: "course id or amount is required",
-		});
-	}
-
-	const options = {
-		amount: amount * 100, // Razorpay requires the amount in paise (i.e., multiplied by 100)
-		currency: "INR",
-		receipt: `receipt_order_1_3_sgther`,
+	//payment
+	const paymentPayload = {
+		merchantId: MERCHANT_ID,
+		merchantUserId: name,
+		mobileNumber: mobile,
+		amount: amount * 100,
+		merchantTransactionId: transactionId,
+		redirectUrl: `${redirectUrl}/?id=${transactionId}`,
+		redirectMode: "POST",
+		paymentInstrument: {
+			type: "PAY_PAGE",
+		},
 	};
 
+	const payload = Buffer.from(JSON.stringify(paymentPayload)).toString(
+		"base64"
+	);
+	const keyIndex = 1;
+	const string = payload + "/pg/v1/pay" + MERCHANT_KEY;
+	const sha256 = crypto.createHash("sha256").update(string).digest("hex");
+	const checksum = sha256 + "###" + keyIndex;
+
+	const option = {
+		method: "POST",
+		url: MERCHANT_BASE_URL_PROD,
+		headers: {
+			accept: "application/json",
+			"Content-Type": "application/json",
+			"X-VERIFY": checksum,
+		},
+		data: {
+			request: payload,
+		},
+	};
 	try {
-		console.log("aaa", options);
-
-		// Await Razorpay order creation instead of using a callback
-		const order = await razorpayInstance.orders.create(options);
-
-		console.log(order);
-
-		return res.status(200).json(order);
-	} catch (error) {
-		console.log(error);
-		return res.status(500).json({
-			success: false,
-			message: "Something went wrong",
+		const response = await axios.request(option);
+		console.log(
+			"ORD",
+			response.data.data.instrumentResponse.redirectInfo.url
+		);
+		res.status(200).json({
+			msg: "OK",
+			url: response.data.data.instrumentResponse.redirectInfo.url,
+			resp: response.data,
 		});
+	} catch (error) {
+		console.log("error in payment", error);
+		res.status(500).json({ error: "Failed to initiate payment" });
 	}
 };
 
 exports.veriFyPayment = async (req, res) => {
-	console.log("VERUFY___$$");
-	let d = new Date();
-	let order_date = d.toLocaleString();
-	let n = d.toISOString();
-	let id = n.split(":")[0] + n.split(":")[1] + n.split(":")[2].slice(0, 6);
-	let customerOrderId = id
-		.replace(/-/g, "")
-		.replace(".", "")
-		.replace("T", "");
-	res.send("Paymnent verify");
-	const { order_id, payment_id, signature } = req.body;
-	const secret = process.env.RAZORPAY_KEY_SECRET;
-	console.log("VERIFY", req.body);
-	const hmac = crypto.createHmac("sha256", secret);
-	hmac.update(order_id + "|" + payment_id);
-	const generateSignature = hmac.digest("hex");
+	const merchantTransactionId = req.query.id;
+	console.log("STATUS", req.query);
 
-	console.log("generateSignature", generateSignature);
-	console.log("signature", req);
-	if (generateSignature === signature) {
-		return res.status(200).json({
-			success: true,
-			paymentDetails: { order_date, customerOrderId },
-			message: "Payment Verified",
-		});
-	} else {
-		console.log("GG", res);
-		return res.status(400).json({
-			success: false,
-			message: "Payment not Verified",
-		});
-	}
+	const keyIndex = 1;
+	const string =
+		`/pg/v1/status/${MERCHANT_ID}/${merchantTransactionId}` + MERCHANT_KEY;
+	const sha256 = crypto.createHash("sha256").update(string).digest("hex");
+	const checksum = sha256 + "###" + keyIndex;
+
+	const option = {
+		method: "GET",
+		url: `${MERCHANT_STATUS_URL_PROD}/${MERCHANT_ID}/${merchantTransactionId}`,
+		headers: {
+			accept: "application/json",
+			"Content-Type": "application/json",
+			"X-VERIFY": checksum,
+			"X-MERCHANT-ID": MERCHANT_ID,
+		},
+	};
+
+	axios.request(option).then((response) => {
+		if (response.data.success === true) {
+			// Return success status
+			res.status(200).json({
+				status: "success",
+				message: "Payment Verified",
+			});
+			return res.redirect(successUrl);
+		} else {
+			// Return failure status
+			res.status(200).json({
+				status: "failure",
+				message: "Payment Verification Failed",
+			});
+			return res.redirect(failureUrl);
+		}
+	});
 };
