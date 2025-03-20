@@ -5,11 +5,11 @@ const axios = require("axios");
 const { v4: uuidv4 } = require("uuid");
 require("dotenv").config();
 
-const MERCHANT_KEY = "53201aea-9942-482f-952a-7bc6c6102453";
-const MERCHANT_ID = "MERCHANTUAT";
+// const MERCHANT_KEY = "53201aea-9942-482f-952a-7bc6c6102453";
+// const MERCHANT_ID = "MERCHANTUAT";
 
-// const MERCHANT_KEY = "96434309-7796-489d-8924-ab56988a6076";
-// const MERCHANT_ID = "PGTESTPAYUAT86";
+const MERCHANT_KEY = "96434309-7796-489d-8924-ab56988a6076";
+const MERCHANT_ID = "PGTESTPAYUAT86";
 
 const MERCHANT_BASE_URL =
 	"https://api-preprod.phonepe.com/apis/pg-sandbox/pg/v1/pay";
@@ -57,7 +57,7 @@ exports.createOrder = async (req, res) => {
 
 	const option = {
 		method: "POST",
-		url: MERCHANT_BASE_URL_PROD,
+		url: MERCHANT_BASE_URL,
 		headers: {
 			accept: "application/json",
 			"Content-Type": "application/json",
@@ -96,7 +96,7 @@ exports.veriFyPayment = async (req, res) => {
 
 	const option = {
 		method: "GET",
-		url: `${MERCHANT_STATUS_URL_PROD}/${MERCHANT_ID}/${merchantTransactionId}`,
+		url: `${MERCHANT_STATUS_URL}/${MERCHANT_ID}/${merchantTransactionId}`,
 		headers: {
 			accept: "application/json",
 			"Content-Type": "application/json",
