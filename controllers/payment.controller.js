@@ -5,11 +5,11 @@ const axios = require("axios");
 const { v4: uuidv4 } = require("uuid");
 require("dotenv").config();
 
-// const MERCHANT_KEY = "e238dc05-4252-419e-acf0-759b6242cb90";
-// const MERCHANT_ID = "M227WH8T7N8HO";
+const MERCHANT_KEY = "e238dc05-4252-419e-acf0-759b6242cb90";
+const MERCHANT_ID = "M227WH8T7N8HO";
 
-const MERCHANT_KEY = "96434309-7796-489d-8924-ab56988a6076";
-const MERCHANT_ID = "PGTESTPAYUAT86";
+// const MERCHANT_KEY = "96434309-7796-489d-8924-ab56988a6076";
+// const MERCHANT_ID = "PGTESTPAYUAT86";
 
 const MERCHANT_BASE_URL =
 	"https://api-preprod.phonepe.com/apis/pg-sandbox/pg/v1/pay";
