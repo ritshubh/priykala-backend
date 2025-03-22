@@ -71,13 +71,15 @@ exports.createOrder = async (req, res) => {
 			.request(option)
 			.then((response) => {
 				console.log("ORD", response.data);
+				res.status(200).json({
+					msg: "OK",
+					url: response.data.data.instrumentResponse.redirectInfo.url,
+					resp: response.data,
+				});
 				return res.redirect(
 					response.data.data.instrumentResponse.redirectInfo.url
 				);
 			})
-			.catch((error) => {
-				console.error(error);
-			});
 		// res.status(200).json({
 		// 	msg: "OK",
 		// 	url: response.data.data.instrumentResponse.redirectInfo.url,
