@@ -23,8 +23,8 @@ const MERCHANT_STATUS_URL_PROD =
 
 const redirectUrl = "https://priykala-backend.vercel.app/api/status";
 
-const successUrl = "http://localhost:4000/payment-success";
-const failureUrl = "http://localhost:4000/payment-failure";
+const successUrl = "https://priykala-backend.vercel.app/api/payment-success";
+const failureUrl = "https://priykala-backend.vercel.app/api/payment-failure";
 
 exports.createOrder = async (req, res) => {
 	try {
