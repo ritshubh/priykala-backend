@@ -21,7 +21,7 @@ const MERCHANT_STATUS_URL =
 const MERCHANT_STATUS_URL_PROD =
 	"https://api.phonepe.com/apis/hermes/pg/v1/status";
 
-const redirectUrl = "http://localhost:4000/api/status";
+const redirectUrl = "https://priykala-backend.vercel.app/api/status";
 
 const successUrl = "http://localhost:4000/payment-success";
 const failureUrl = "http://localhost:4000/payment-failure";
