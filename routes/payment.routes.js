@@ -7,6 +7,6 @@ const {
 } = require("../controllers/payment.controller");
 
 router.post("/createOrder", createOrder);
-router.post("/status/:txnId", veriFyPayment);
+router.post("/verifyPayment", veriFyPayment);
 
 module.exports = router;
