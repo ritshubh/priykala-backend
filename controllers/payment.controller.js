@@ -42,6 +42,7 @@ exports.createOrder = async (req, res) => {
 };
 
 exports.veriFyPayment = async (req, res) => {
+	console.log("VERUFY___$$");
 	let d = new Date();
 	let order_date = d.toLocaleString();
 	let n = d.toISOString();
@@ -50,7 +51,7 @@ exports.veriFyPayment = async (req, res) => {
 		.replace(/-/g, "")
 		.replace(".", "")
 		.replace("T", "");
-
+	res.send("Paymnent verify");
 	const { order_id, payment_id, signature } = req.body;
 	const secret = process.env.RAZORPAY_KEY_SECRET;
 	console.log("VERIFY", req.body);
